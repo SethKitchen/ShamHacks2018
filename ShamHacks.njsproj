@@ -86,11 +86,15 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="views\elements.ejs" />
     <Content Include="views\error.ejs" />
     <Content Include="views\index.ejs" />
     <Content Include="views\Login.ejs" />
     <Content Include="views\ResetPassword.ejs" />
     <Content Include="views\account.ejs" />
+    <Content Include="views\sellAnItem.ejs">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config" />
     <Content Include="bin\ChangeConfig.ps1" />

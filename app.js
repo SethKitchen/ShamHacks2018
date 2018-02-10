@@ -19,9 +19,8 @@ var Request = require('tedious').Request;
 var ConnectionPool = require('tedious-connection-pool');
 var TYPES = require('tedious').TYPES;
 var forceSsl = require('express-force-ssl');
-var math = require('mathjs');
-var GOOGLE_CLIENT_ID = "854713659820-vobut1a24pavldh4bv3jgiecbm21dqh2.apps.googleusercontent.com";
-var GOOGLE_CLIENT_SECRET = "QUjKNxc_2qKXp1SaDpmEhaV3";
+var GOOGLE_CLIENT_ID = "116276954926-003dqd6d3aa4tomb92lje1ji96qt9eic.apps.googleusercontent.com";
+var GOOGLE_CLIENT_SECRET = "IH3z7tFCs3PbdaTjsiU8TrPP";
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
 
@@ -88,7 +87,7 @@ passport.use(new GoogleStrategy({
     //then edit your /etc/hosts local file to point on your private IP. 
     //Also both sign-in button + callbackURL has to be share the same url, otherwise two cookies will be created and lead to lost your session
     //if you use it.
-    callbackURL: "https://virtuschools.com/signin-google",
+    callbackURL: "https://localhost/signin-google",
     passReqToCallback: true
 },
     function (request, accessToken, refreshToken, profile, done) {
@@ -175,16 +174,19 @@ app.get('/logout', function (req, res) {
     res.redirect('/');
 });
 
+app.get('/sell', function (req, res) {
+    req.logout();
+    res.render('sellAnItem', { title: 'ShamHacks', user: req.user });
+});
+
 app.get('/', function (req, res) {
     res.render('index', { title: 'ShamHacks', user: req.user });
 });
 
 app.get('/account', ensureAuthenticated, function (req, res) {
-    //Example of courses being sent: var courses = [{ name: "A" }];
     console.log(req.user.id);
-
-    GetCourses(req.user.id, function (courses) {
-        res.render('account', { user: req.user, courses: courses, message: undefined });
+    GetCurrentProfileInformation(req.user, function (err, data) {
+        res.render('account', { user: req.user, data: data, message: undefined });
     });
 });
 
@@ -192,14 +194,42 @@ app.get('/login', function (req, res) {
     res.render('Login', { user: req.user });
 });
 
-app.get('/education', function (req, res) {
-    res.render('education', { user: req.user });
-});
-
 app.get('/contact', function (req, res) {
     res.render('contact', { user: req.user });
 });
 
+app.post('/PostNewItem', ensureAuthenticated, function (req, res) {
+    var title = req.body.newitemname;
+    var cost = req.body.newitemcost;
+    var quantityAvailable = req.body.newitemquantity;
+    var pickUp = req.body.newitempickup;
+    var image = req.body.newitemimage;
+    PostNewItem(req.user.id, title, cost, quantityAvailable, pickUp, image, function (err) {
+        res.redirect('/account');
+    });
+});
+
+app.post('/UpdateProfileInfo', ensureAuthenticated, function (req, res) {
+    var dob = req.body.newdob;
+    var addr = req.body.newaddr;
+    var city = req.body.newcity;
+    var state = req.body.newstate;
+    var zip = req.body.newzipcode;
+    var company = req.body.newcompany;
+    var phoneNumber = req.body.newphonenumber;
+    var gender = req.body.newgender;
+    var race = req.body.newrace;
+    var isVet = req.body.newvet;
+    var branch = req.body.newmilitarybranch;
+    var war = req.body.newwar;
+    var rank = req.body.newrank;
+    var troops = req.body.newtroopdescript;
+    var job = req.body.newjob;
+    var video = req.body.newvideo;
+    UpdateProfile(req.user.id, dob, addr, city, state, zip, company, phoneNumber, gender, race, isVet, branch, war, rank, troops, job, video, function (err) {
+        res.redirect('/account');
+    });
+});
 
 
 function isNumeric(n) {
@@ -291,6 +321,163 @@ function ensureAuthenticated(req, res, next) {
     res.redirect('/login');
 }
 
+function GetCurrentProfileInformation(userId, callback) {
+    var jsonArray = [];
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("SELECT * FROM Users WHERE UserId=@UserId", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                err = null;
+                connection.release();
+                if (jsonArray.length == 0) {
+                    callback(err, null);
+                }
+                else {
+                    callback(err, jsonArray);
+                }
+            }
+        });
+        request.addParameter('UserId', TYPES.NChar, userId.id);
+
+        request.on('doneInProc', function (rowCount, more, rows) {
+            rows.forEach(function (columns) {
+                var rowObject = {};
+                columns.forEach(function (column) {
+                    if (column.value != null) {
+                        rowObject[column.metadata.colName] = column.value.toString().trim();
+                    }
+                    else {
+                        rowObject[column.metadata.colName] = null;
+                    }
+                });
+                jsonArray.push(rowObject);
+            });
+        });
+        connection.execSql(request);
+    });
+}
+
+function InsertOrUpdateUserInDatabase(userId, famName, giveName, email, picture, lastSessionId, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("IF EXISTS (SELECT * FROM Users WHERE UserId=@UserId) UPDATE Users SET FamilyName=@FamilyName, GivenName=@GivenName, Email=@Email, Picture=@Picture, LastSessionId=@LastSessionId WHERE UserId=@UserId ELSE INSERT INTO Users (UserId, FamilyName, GivenName, Email, Picture, LastSessionId, IsVeteran) VALUES(@UserId,@FamilyName,@GivenName,@Email,@Picture,@LastSessionId, 'false')", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('UserId', TYPES.NChar, userId);
+        request.addParameter('FamilyName', TYPES.NChar, famName);
+        request.addParameter('GivenName', TYPES.NChar, giveName);
+        request.addParameter('Email', TYPES.NChar, email);
+        request.addParameter('Picture', TYPES.NChar, picture);
+        request.addParameter('LastSessionId', TYPES.NChar, lastSessionId);
+        connection.execSql(request);
+    });
+}
+
+function PostNewItem(userId, title, cost, quantityAvailable, pickUp, image, callback)
+{
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        var request = new Request("INSERT INTO Products (Title, Cost, Quantity, PickUpAvailable, ImageLink, SellerId) VALUES(@Title,@Cost,@Quantity,@PickUpAvailable,@ImageLink,@SellerId)", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('SellerId', TYPES.NChar, userId);
+        request.addParameter('ImageLink', TYPES.NChar, image);
+        request.addParameter('Cost', TYPES.Float, cost);
+        request.addParameter('Quantity', TYPES.NChar, quantityAvailable);
+        request.addParameter('PickUpAvailable', TYPES.NChar, pickUp);
+        request.addParameter('Title', TYPES.NChar, title);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
+
+function UpdateProfile(userId, dob, addr, city, state, zip, company, phoneNumber, gender, race, isVet, branch, war, rank, troops, job, video, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("IF EXISTS (SELECT * FROM Users WHERE UserId=@UserId) UPDATE Users SET DateOfBirth=@DateOfBirth, Address=@Address, City=@City, State=@State, ZipCode=@ZipCode, Gender=@Gender, Race=@Race, Company=@Company, Job=@Job, MilitaryBranch=@MilitaryBranch, OperationOrWar=@OperationOrWar, Rank=@Rank, TroopDescription=@TroopDescription, IsVeteran=@IsVeteran, VideoInterviewLink=@VideoInterviewLink WHERE UserId=@UserId", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('UserId', TYPES.NChar, userId);
+        request.addParameter('DateOfBirth', TYPES.Date, dob);
+        request.addParameter('Address', TYPES.NChar, addr);
+        request.addParameter('City', TYPES.NChar, city);
+        request.addParameter('State', TYPES.NChar, state);
+        request.addParameter('ZipCode', TYPES.NChar, zip);
+        request.addParameter('Gender', TYPES.NChar, gender);
+        request.addParameter('Race', TYPES.NChar, race);
+        request.addParameter('Company', TYPES.NChar, company);
+        request.addParameter('PhoneNumber', TYPES.NChar, phoneNumber);
+        request.addParameter('Job', TYPES.NChar, job);
+        request.addParameter('MilitaryBranch', TYPES.NChar, branch);
+        request.addParameter('OperationOrWar', TYPES.NChar, war);
+        request.addParameter('Rank', TYPES.NChar, rank);
+        request.addParameter('IsVeteran', TYPES.NChar, isVet);
+        request.addParameter('TroopDescription', TYPES.NChar, troops);
+        request.addParameter('VideoInterviewLink', TYPES.NChar, video);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
 
 module.exports = app;
 https.createServer(options, app).listen(443);
