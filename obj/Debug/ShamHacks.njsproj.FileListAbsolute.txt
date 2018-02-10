@@ -1,0 +1,3 @@
+D:\ShamHacks2018\ShamHacks2018\obj\Debug\ShamHacks.njsprojResolveAssemblyReference.cache
+D:\ShamHacks2018\ShamHacks2018\obj\Debug\ShamHacks.njsproj.CoreCompileInputs.cache
+D:\ShamHacks2018\ShamHacks2018\bin\Microsoft.NodejsTools.WebRole.dll

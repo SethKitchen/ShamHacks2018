@@ -1,0 +1,183 @@
+<!DOCTYPE HTML>
+<!--
+	Landed by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+	Has been changed to meet this sites requirements specifically text, and images.
+-->
+<html>
+
+<head>
+	<title>VirtuSchools</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+	<link rel="stylesheet" href="css/main.css" />
+	<link rel="stylesheet" href="css/jquery.alerts.css" type="text/css" media="screen" />
+	<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+	<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+</head>
+
+<body>
+	<div id="page-wrapper">
+
+		<!-- Header -->
+		<header id="header">
+			<h1 id="logo"><a href="/">VirtuSchools</a></h1>
+			<nav id="nav">
+				<ul>
+					<li><a href="/">Home</a></li>
+					<li>
+						<a href="#">About</a>
+						<ul>
+							<li>
+								<a href="/education">Schools</a>
+								<ul>
+									<li><a href="/education">Teacher</a></li>
+									<li><a href="/education">Student</a></li>
+								</ul>
+							</li>
+							<li>
+								<a href="/companies">Companies</a>
+								<ul>
+									<li><a href="/companies">Employer</a></li>
+									<li><a href="/companies">Employee</a></li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<%if (!user) { %>
+						<li><a href="/login">Login</a></li>
+						<li><a href="/login" class="button special">Sign Up</a></li>
+						<% } else { %>
+							<li><a href="/logout">Logout</a></li>
+							<li><a href="/account" class="button special">My Profile</a></li>
+							<% } %>
+				</ul>
+			</nav>
+		</header>
+
+		<div style="text-align:center;">	
+			<% for(var i=0; i<courses.length; i++) {%>
+				<form method='post' action='/redirectToCourse' style='float:left;'>
+					<input type="submit" <%- "value="+(courses[i].CourseSubject.toString().trim()+"-"+courses[i].CourseName.toString().trim()) %>>
+					<input type="hidden" name="type" <%- "value="+(courses[i].userType) %> >
+					<input type="hidden" name="id" <%- "value="+(courses[i].CourseId) %> >
+				</form>
+			<% } %>
+		</div>
+		<!-- Main -->
+		<div id="main" class="wrapper style1">
+			<div class="container">
+				<header class="major">
+					<h2>Update your Profile:</h2>
+					<p>View your personal information which is seen by your classes. Edit these by editing them in your Google Account.</p>
+				</header>
+				<div class="row 150%">
+					<div class="4u 12u$(medium)">
+
+						<!-- Sidebar -->
+						<section id="sidebar">
+							<section>
+								<h3>Personal Information</h3>
+								<p>We store your first name, last name, email, and picture.</p>
+							</section>
+							<section>
+								<h3>Course and Course Id</h3>
+								<p>All of your courses appear above. Click one to work. You can create or join classes below. The Course Id will be
+									created by the Instructor. The Instructor should enter a unique Course Id below and save it. They should give this
+									Id (via email or in-person) to their students, so they can join.
+							</section>
+						</section>
+
+					</div>
+					<div class="8u$ 12u$(medium) important(medium)">
+
+						<!-- Content -->
+						<section id="content">
+							<a href="#" class="image fit"><img src="images/pic05.jpg" alt="" /></a>
+
+							<h2>Current Information</h2>
+							<% if(user.photos.length>0) { %>
+								<span class="image"><img id="image" <%- "src="+user.photos[0].value %> alt="Photo" height="150" width="150" /></span><br>
+								<% } else { %>
+									<span class="image"><img id="image" src="https://pixabay.com/static/uploads/photo/2014/04/03/10/10/man-310013_960_720.png" alt="Photo" height="150" width="150" /></span><br>
+									<% } %>
+										<strong>First Name:</strong> <span id="currentfname"><%= user.name.givenName %></span><br>
+										<strong>Last Name:</strong> <span id="currentlname"><%= user.name.familyName %></span><br>
+										<strong>Email:</strong> <span id="currentemail"><%= user.email %></span><br>
+
+										<hr style="border: dashed 3px;" />
+
+										<h2>Create a Class. </h2>
+
+										<form method='post' action='/CreateCourse'>
+											<strong>Course Name (ie Ms. Smith's Algebra 2017):</strong> <br>
+
+											<input type="text" name="courseName"><br><br>
+
+											<strong>Course Subject:</strong> <input type="text" value="Algebra" name="courseSubject" readonly> <br><br><br>
+											<strong>Course Id (most be unique):</strong> <br>
+											<input type="text" name="courseId" /><br><br>
+											<input type="submit" value="Create"><br><br>
+										</form>
+										<hr style="border: dashed 3px;" />
+
+										<h2>Join a Class. </h2>
+
+										<form method='post' action='/JoinCourse'>
+											<strong>Course Id:</strong> <br>
+											<input type="text" name="courseId"> <br><br>
+											<input type="submit" value="Join"><br><br>
+										</form>
+										<hr style="border: dashed 3px;" />
+
+										<style>
+											div.transbox {
+												opacity: 0.65;
+											}
+										</style>
+						</section>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Footer -->
+		<footer id="footer">
+			<ul class="icons">
+				<li><a href="#" class="icon alt fa-twitter"><span class="label">Twitter</span></a></li>
+				<li><a href="https://www.facebook.com/virtuschools" class="icon alt fa-facebook"><span class="label">Facebook</span></a></li>
+				<li><a href="#" class="icon alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
+				<li><a href="#" class="icon alt fa-instagram"><span class="label">Instagram</span></a></li>
+				<li><a href="#" class="icon alt fa-github"><span class="label">GitHub</span></a></li>
+				<li><a href="#" class="icon alt fa-envelope"><span class="label">Email</span></a></li>
+			</ul>
+			<ul class="copyright">
+				<li>&copy; VirtuSchools. All rights reserved.</li>
+				<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+			</ul>
+		</footer>
+
+	</div>
+
+	<!-- Scripts -->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.dropotron.min.js"></script>
+	<script src="js/jquery.scrollex.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/util.js"></script>
+	<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+	<script src="js/main.js"></script>
+	<script src="js/jquery.alerts.js" type="text/javascript"></script>
+	<script>
+		if(<%-"'"+ message +"'" %> !== 'undefined')
+		{
+           jAlert(<%-"'"+ message +"'" %>,'Account');
+		}
+	</script>
+
+</body>
+
+</html>

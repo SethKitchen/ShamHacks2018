@@ -1,0 +1,6 @@
+C:\Users\sjkyv5\Desktop\VirtuSchools\VirtuSchools\VirtuSchools\obj\Debug\VirtuSchools.njsprojResolveAssemblyReference.cache
+C:\Users\sjkyv5\Desktop\VirtuSchools\VirtuSchools\VirtuSchools\bin\Microsoft.NodejsTools.WebRole.dll
+C:\Users\sjkyv5\Desktop\VirtuSchools\VirtuSchools\VirtuSchools\obj\Debug\VirtuSchools.njsproj.CoreCompileInputs.cache
+D:\Downloads\VirtuSchoolsRepo\VirtuSchools\obj\Debug\VirtuSchools.njsprojResolveAssemblyReference.cache
+D:\Downloads\VirtuSchoolsRepo\VirtuSchools\obj\Debug\VirtuSchools.njsproj.CoreCompileInputs.cache
+D:\Downloads\VirtuSchoolsRepo\VirtuSchools\bin\Microsoft.NodejsTools.WebRole.dll
