@@ -24,7 +24,6 @@ var GOOGLE_CLIENT_SECRET = "IH3z7tFCs3PbdaTjsiU8TrPP";
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
 var Fuse = require('fuse.js');
-var paypal = require('paypal-rest-sdk');
 
 
 process.on('uncaughtException', function (err) {
@@ -930,11 +929,6 @@ function UpdateProfile(userId, dob, addr, city, state, zip, company, phoneNumber
     });
 }
 
-paypal.configure({
-    'mode': 'sandbox', //sandbox or live
-    'client_id': 'AaapI2lWuOgGlJ3_4IRP_5gNN_YH2-PcCQy5hZ0NRzf1rEQ2Vf1tgzMlEovG1udwo_Fb-qKEwLIn8d_c',
-    'client_secret': 'EEG_VkgNToQRd3IwnxuwbdYim9PBCxu-xCV3Uq6VCSWDemgyEjMUmstvcbFO6K2qiFpp6reaBkZNnAD4'
-});
 
 module.exports = app;
 https.createServer(options, app).listen(443);
