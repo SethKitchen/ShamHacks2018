@@ -69,44 +69,50 @@
 						
 							<% if (data) { %>
 								<section>
-									<form method='post' action='/pay'>
-											<input style="display: block; margin-left:auto; margin-right: auto;" type="submit" value="Buy" />
-											<% if (data.itemData.MainImageLink) { %>
-												<img style="float: left; width:25%;" <%- "src="+(data.itemData.MainImageLink.toString().trim()) %>><br>
-											<% } %>
-											<% if (data.itemData.ImageLink2) { %>
-												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink2.toString().trim()) %>><br>
-											<% } %>
-											<% if (data.itemData.ImageLink3) { %>
-												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink3.toString().trim()) %>><br>
-											<% } %>
-											<% if (data.itemData.ImageLink4) { %>
-												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink4.toString().trim()) %>><br>
-											<% } %>
-											<% if (data.itemData.ImageLink5) { %>
-												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink5.toString().trim()) %>><br>
-											<% } %>
-											<% if (data.itemData.Title) { %>
-												<input readonly style="background: white; font-weight:bold; font-size:25px; width:55%; float:left" name="itemname" type="text"  value='<%-data.itemData.Title.toString().trim() %>' /><br>
-											<% } %>
-											<% if (data.itemData.Cost) { %>
-												<input readonly name="itemcost" style="background: white; color: green; float: left; width:45%; font-size:20px; " type="text" <%- "value=$"+(data.itemData.Cost.toString().trim()) %> /><br>
-											<% } %>
-											<% if (data.itemData.PickUpAvailable) { %>
-												<strong style="float:left; width:25%">Pick-up available?</strong> <input style="float:left; background: white; width:25%;" readonly name="itempickup" type="text" <%- "value="+(data.itemData.PickUpAvailable.toString().trim()) %> /><br>
-											<% } %>
-											<% if (data.itemData.DescriptionTags) { %>
-												<input style="float:left; background:white;" readonly name="itemtags" type="text" value='<%-data.itemData.DescriptionTags.toString().trim() %>' /><br>
-											<% } %>
-											<% if (data.itemData.Quantity) { %>
-												<input style="float:left; background:white;" readonly name="itemtags" type="text" value='<%-data.itemData.Quantity.toString().trim() %> left in stock' /><br>
-											<% } %>
-											<% if (data.itemData.id) { %>
-												<input name="itemid" type="hidden" <%- "value="+(data.itemData.id.toString().trim()) %> />
-											<% } %>
-											<hr style='display:inline-block; width:100px;' />
-									</form>
-									
+									<form name="_xclick" target="paypal" action="https://www.paypal.com" method="post">
+										<input type="hidden" name="cmd" value="_cart">
+										<input type="hidden" name="business" value="koolseth28@gmail.com">
+										<input type="hidden" name="currency_code" value="USD">
+										<input type="hidden" name="item_name" value='<%-data.itemData.Title.toString().trim() %>'>
+										<input type="hidden" name="amount" <%- "value="+(data.itemData.Cost.toString().trim()) %>>
+										<input type="image" src="http://www.paypal.com/en_US/i/btn/btn_cart_LG.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!">
+										<input type="hidden" name="add" value="1">
+									</form> 
+									<% if (data.itemData.MainImageLink) { %>
+										<img style="float: left; width:25%;" <%- "src="+(data.itemData.MainImageLink.toString().trim()) %>><br>
+									<% } %>
+									<% if (data.itemData.ImageLink2) { %>
+										<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink2.toString().trim()) %>><br>
+									<% } %>
+									<% if (data.itemData.ImageLink3) { %>
+										<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink3.toString().trim()) %>><br>
+									<% } %>
+									<% if (data.itemData.ImageLink4) { %>
+										<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink4.toString().trim()) %>><br>
+									<% } %>
+									<% if (data.itemData.ImageLink5) { %>
+										<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink5.toString().trim()) %>><br>
+									<% } %>
+									<% if (data.itemData.Title) { %>
+										<input readonly style="background: white; font-weight:bold; font-size:25px; width:55%; float:left" name="itemname" type="text"  value='<%-data.itemData.Title.toString().trim() %>' /><br>
+									<% } %>
+									<% if (data.itemData.Cost) { %>
+										<input readonly name="itemcost" style="background: white; color: green; float: left; width:45%; font-size:20px; " type="text" <%- "value=$"+(data.itemData.Cost.toString().trim()) %> /><br>
+									<% } %>
+									<% if (data.itemData.PickUpAvailable) { %>
+										<strong style="float:left; width:25%">Pick-up available?</strong> <input style="float:left; background: white; width:25%;" readonly name="itempickup" type="text" <%- "value="+(data.itemData.PickUpAvailable.toString().trim()) %> /><br>
+									<% } %>
+									<% if (data.itemData.DescriptionTags) { %>
+										<input style="float:left; background:white;" readonly name="itemtags" type="text" value='<%-data.itemData.DescriptionTags.toString().trim() %>' /><br>
+									<% } %>
+									<% if (data.itemData.Quantity) { %>
+										<input style="float:left; background:white;" readonly name="itemtags" type="text" value='<%-data.itemData.Quantity.toString().trim() %> left in stock' /><br>
+									<% } %>
+									<% if (data.itemData.id) { %>
+										<input name="itemid" type="hidden" <%- "value="+(data.itemData.id.toString().trim()) %> />
+									<% } %>
+									<hr style='display:inline-block; width:100px;' />
+								
 									<section>
 										<h2> Seller Information </h2>
 										<% if (data.sellerData.Address) { %>
