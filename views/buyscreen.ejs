@@ -1,0 +1,261 @@
+﻿<!DOCTYPE HTML>
+<!--
+	Spectral by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Wild Blue Yonder</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="css/main.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="css/ie8.css" /><![endif]-->
+		<!--[if lte IE 9]><link rel="stylesheet" href="css/ie9.css" /><![endif]-->
+	</head>
+	<body class="landing">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<h1><a href="index.html">Wild Blue Yonder</a></h1>
+						<nav id="nav">
+							<ul>
+								<li class="special">
+									<a href="#menu" class="menuToggle"><span>Menu</span></a>
+									<div id="menu">
+										<ul>
+											<li><a href="/">Home</a></li>
+											<%if (!user) { %>
+												<li><a href="/login">Login</a></li>
+												<li><a href="/login">Sign Up</a></li>
+											<% } else { %>
+												<li><a href="/logout">Logout</a></li>
+												<li><a href="/account" class="button special">My Profile</a></li>
+											<% } %>
+										</ul>
+									</div>
+								</li>
+							</ul>
+						</nav>
+					</header>
+
+		<!-- Main -->
+		<article id="main">
+			<header>
+					<h2>Buy Screen:</h2>
+					<p>Buy this item if interested.</p>
+				</header>
+				<section class="wrapper style5">
+				<div class="row 150%">
+					<div class="4u 12u$(medium)">
+
+						<!-- Sidebar -->
+						<section id="sidebar">
+							<section>
+								<h3>Product and User Details</h3>
+								<p> Read Reviews, View more Pictures, Determine if Seller is a Veteran (Upvote/Downvote) </p>
+							</section>
+						</section>
+
+					</div>
+					<div class="8u$ 12u$(medium) important(medium)">
+
+						<!-- Content -->
+						<section id="content">
+						
+							<% if (data) { %>
+								<section>
+									<form method='post' action='/pay'>
+											<input style="display: block; margin-left:auto; margin-right: auto;" type="submit" value="Buy" />
+											<% if (data.itemData.MainImageLink) { %>
+												<img style="float: left; width:25%;" <%- "src="+(data.itemData.MainImageLink.toString().trim()) %>><br>
+											<% } %>
+											<% if (data.itemData.ImageLink2) { %>
+												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink2.toString().trim()) %>><br>
+											<% } %>
+											<% if (data.itemData.ImageLink3) { %>
+												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink3.toString().trim()) %>><br>
+											<% } %>
+											<% if (data.itemData.ImageLink4) { %>
+												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink4.toString().trim()) %>><br>
+											<% } %>
+											<% if (data.itemData.ImageLink5) { %>
+												<img style="float: left; width:25%;" <%- "src="+(data.itemData.ImageLink5.toString().trim()) %>><br>
+											<% } %>
+											<% if (data.itemData.Title) { %>
+												<input readonly style="background: white; font-weight:bold; font-size:25px; width:55%; float:left" name="itemname" type="text"  value='<%-data.itemData.Title.toString().trim() %>' /><br>
+											<% } %>
+											<% if (data.itemData.Cost) { %>
+												<input readonly name="itemcost" style="background: white; color: green; float: left; width:45%; font-size:20px; " type="text" <%- "value=$"+(data.itemData.Cost.toString().trim()) %> /><br>
+											<% } %>
+											<% if (data.itemData.PickUpAvailable) { %>
+												<strong style="float:left; width:25%">Pick-up available?</strong> <input style="float:left; background: white; width:25%;" readonly name="itempickup" type="text" <%- "value="+(data.itemData.PickUpAvailable.toString().trim()) %> /><br>
+											<% } %>
+											<% if (data.itemData.DescriptionTags) { %>
+												<input style="float:left; background:white;" readonly name="itemtags" type="text" value='<%-data.itemData.DescriptionTags.toString().trim() %>' /><br>
+											<% } %>
+											<% if (data.itemData.Quantity) { %>
+												<input style="float:left; background:white;" readonly name="itemtags" type="text" value='<%-data.itemData.Quantity.toString().trim() %> left in stock' /><br>
+											<% } %>
+											<% if (data.itemData.id) { %>
+												<input name="itemid" type="hidden" <%- "value="+(data.itemData.id.toString().trim()) %> />
+											<% } %>
+											<hr style='display:inline-block; width:100px;' />
+									</form>
+									
+									<section>
+										<h2> Seller Information </h2>
+										<% if (data.sellerData.Address) { %>
+											<div style="float:left; width=25%; margin:10px;">
+												<strong>Address:</strong> <span id="currentaddr"><%= data.sellerData.Address %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.City) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>City:</strong> <span id="currentcity"><%= data.sellerData.City %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.State) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>State:</strong> <span id="currentstate"><%= data.sellerData.State %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.ZipCode) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Zip Code:</strong> <span id="currentzipcode"><%= data.sellerData.ZipCode %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.Company) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Company:</strong> <span id="currentcompany"><%= data.sellerData.Company %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.PhoneNumber) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>PhoneNumber:</strong> <span id="currentphonenumber"><%= data.sellerData.PhoneNumber %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.IsVeteran) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Is A Veteran ?:</strong> <span id="currentvet"><%= data.sellerData.IsVeteran %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.MilitaryBranch) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Military Branch:</strong> <span id="currentmilitarybranch"><%= data.sellerData.MilitaryBranch %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.OperationOrWar) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>War, Military Operation, or Stationed Area:</strong> <span id="currentwar"><%= data.sellerData.OperationOrWar %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.Rank) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Rank:</strong> <span id="currentrank"><%= data.sellerData.Rank %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.TroopDescription) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Unit Description:</strong> <span id="currenttroopdescript"><%= data.sellerData.TroopDescription %></span><br>
+											</div>
+										<% } %>
+										<% if (data.sellerData.Job) { %>
+											<div style="float:left; width:25%; margin:10px;">
+												<strong>Military Occupational Specialty:</strong> <span id="currentjob"><%= data.sellerData.Job %></span><br>	
+											</div>
+										<% } %>
+										<% if (data.sellerData.VideoInterviewLink) { %>
+											<iframe style="display: block; margin-left:auto; margin-right: auto;" width="420" height="315"
+												<%- "src="+(data.sellerData.VideoInterviewLink) %>>
+											</iframe>
+										<% } %>
+										<p>To keep our site integrity, please vote for the legitamacy of this Veteran (not allowed if you've voted already).</p>
+										<% if (data.approvalData) { %>
+											<% if (data.approvalData[0] && data.approvalData[0].Vote=="false") { %>
+												<div style="float:left; width:100%; margin:10px;">
+													<strong>The Majority Think Phony. Votes:</strong> <span id="currentjob"><%= data.approvalData[0].c %></span><br>	
+												</div>
+											<% } else { %>
+												<div style="float:left; width:100%; margin:10px;">
+													<strong>The Majority Think Legitimate. Votes:</strong> <span id="currentjob"><%= data.approvalData[0].c %></span><br>	
+												</div>
+											<% } %>
+											<% if (data.approvalData.length>1 && data.approvalData[1] && data.approvalData[1].Vote=="false") { %>
+												<div style="float:left; width:100%; margin:10px;">
+													<strong>The Minority Think Phony. Votes:</strong> <span id="currentjob"><%= data.approvalData[1].c %></span><br>	
+												</div>
+											<% } else if (data.approvalData.length>1) { %>
+												<div style="float:left; width:100%; margin:10px;">
+													<strong>The Minority Think Legitimate. Votes:</strong> <span id="currentjob"><%= data.approvalData[1].c %></span><br>	
+												</div>
+											<% } %>
+										<% } %>
+										<form method="post" action="/voteAff">
+											<% if (data.sellerData.UserId) { %>
+												<input name="sellerid" type="hidden" <%- "value="+(data.sellerData.UserId.toString().trim()) %> />
+											<% } %>
+											<input type="submit"  value="Seems Legitimate" />
+										</form>
+										<form method="post" action="/voteNeg">
+											<% if (data.sellerData.UserId) { %>
+												<input name="sellerid" type="hidden" <%- "value="+(data.sellerData.UserId.toString().trim()) %> />
+											<% } %>
+											<input type="submit"  value="Seems Phony" />
+										</form>
+									</section>
+								</section>
+							<% } else { %>
+								<section>
+									<p>No Results Found.</p>
+								</section>
+							<% } %>
+							<hr style="border: dashed 3px;" />
+
+							<style>
+								div.transbox {
+									opacity: 0.65;
+								}
+							</style>
+						</section>
+					</div>
+				</div>
+			</div>
+		</div>
+		</section>
+		</article>
+
+		<!-- Footer -->
+		<footer id="footer">
+			<ul class="icons">
+				<li><a href="#" class="icon alt fa-twitter"><span class="label">Twitter</span></a></li>
+				<li><a href="https://www.facebook.com/virtuschools" class="icon alt fa-facebook"><span class="label">Facebook</span></a></li>
+				<li><a href="#" class="icon alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
+				<li><a href="#" class="icon alt fa-instagram"><span class="label">Instagram</span></a></li>
+				<li><a href="#" class="icon alt fa-github"><span class="label">GitHub</span></a></li>
+				<li><a href="#" class="icon alt fa-envelope"><span class="label">Email</span></a></li>
+			</ul>
+			<ul class="copyright">
+				<li>&copy; Seth Kitchen and Corey Kitsch. All rights reserved.</li>
+				<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+			</ul>
+		</footer>
+
+	</div>
+
+	<!-- Scripts -->
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.scrolly.min.js"></script>
+	<script src="js/jquery.scrollex.min.js"></script>
+	<script src="js/skel.min.js"></script>
+	<script src="js/util.js"></script>
+	<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+	<script src="js/main.js"></script>
+
+</body>
+
+</html>

@@ -6,7 +6,7 @@
 -->
 <html>
 	<head>
-		<title>Spectral by HTML5 UP</title>
+		<title>Wild Blue Yonder</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!--[if lte IE 8]><script src="js/ie/html5shiv.js"></script><![endif]-->
@@ -21,7 +21,7 @@
 
 				<!-- Header -->
 					<header id="header" class="alt">
-						<h1><a href="index.html">Spectral</a></h1>
+						<h1><a href="index.html">Wild Blue Yonder</a></h1>
 						<nav id="nav">
 							<ul>
 								<li class="special">
@@ -57,7 +57,7 @@
 						<section id="sidebar">
 							<section>
 								<h3>Personal Information</h3>
-								<p>We store your first name, last name, email, address, phone number, picture, military data, and interview video.</p>
+								<p>All information is optional and public to verify status (except race and gender which are always private).</p>
 							</section>
 							<% if (data) { %>
 								<% if (data[0].IsVeteran.toLowerCase()=='y' || data[0].IsVeteran.toLowerCase()=='yes' || data[0].IsVeteran.toLowerCase()=='true') { %>
@@ -66,6 +66,12 @@
 											<input type='submit' value='Sell an Item'>
 										</form>
 										<p>Post your product on our site to sell. </p>
+									</section>
+									<section>
+										<form method='get' action="/viewSelling">
+											<input type='submit' value='Manange your listings'>
+										</form>
+										<p>Change things like your product images, quantities, and costs. </p>
 									</section>
 								<% } %>
 							<% } %>
@@ -128,10 +134,10 @@
 												<strong>Rank:</strong> <span id="currentrank"><%= data[0].Rank %></span><br>
 											<% } %>
 											<% if (data[0].TroopDescription) { %>
-												<strong>Troop Description:</strong> <span id="currenttroopdescript"><%= data[0].TroopDescription %></span><br>
+												<strong>Unit Description:</strong> <span id="currenttroopdescript"><%= data[0].TroopDescription %></span><br>
 											<% } %>
 											<% if (data[0].Job) { %>
-												<strong>Job:</strong> <span id="currentjob"><%= data[0].Job %></span><br>	
+												<strong>Military Occupational Specialty:</strong> <span id="currentjob"><%= data[0].Job %></span><br>	
 											<% } %>
 											<% if (data[0].VideoInterviewLink) { %>
 												<iframe width="420" height="315"
@@ -156,8 +162,8 @@
 											<strong>Military Branch:</strong> <input id="newmilitarybranch" name="newmilitarybranch" type="text" /><br>
 											<strong>War, Military Operation, or Stationed Area:</strong> <input id="newwar" name="newwar" type="text" /><br>
 											<strong>Rank:</strong> <input id="newrank" name="newrank" type="text" /><br>
-											<strong>Troop Description:</strong> <input id="newtroopdescript" name="newtroopdescript" type="text" /><br>
-											<strong>Job:</strong> <input id="newjob" name="newjob" type="text" /><br>
+											<strong>Unit Description:</strong> <input id="newtroopdescript" name="newtroopdescript" type="text" /><br>
+											<strong>Military Occupational Specialty:</strong> <input id="newjob" name="newjob" type="text" /><br>
 											<strong>Video Interview Link (Use Embed Link): </strong> <input id="newvideo" name="newvideo" type="text" /><br>
 											<input type="submit" value="Update"><br><br>
 										</form>
@@ -181,14 +187,14 @@
 		<footer id="footer">
 			<ul class="icons">
 				<li><a href="#" class="icon alt fa-twitter"><span class="label">Twitter</span></a></li>
-				<li><a href="https://www.facebook.com/virtuschools" class="icon alt fa-facebook"><span class="label">Facebook</span></a></li>
+				<li><a href="#" class="icon alt fa-facebook"><span class="label">Facebook</span></a></li>
 				<li><a href="#" class="icon alt fa-linkedin"><span class="label">LinkedIn</span></a></li>
 				<li><a href="#" class="icon alt fa-instagram"><span class="label">Instagram</span></a></li>
 				<li><a href="#" class="icon alt fa-github"><span class="label">GitHub</span></a></li>
 				<li><a href="#" class="icon alt fa-envelope"><span class="label">Email</span></a></li>
 			</ul>
 			<ul class="copyright">
-				<li>&copy; VirtuSchools. All rights reserved.</li>
+				<li>&copy; Seth Kitchen and Corey Kitsch. All rights reserved.</li>
 				<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
 			</ul>
 		</footer>

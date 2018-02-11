@@ -23,6 +23,9 @@ var GOOGLE_CLIENT_ID = "116276954926-003dqd6d3aa4tomb92lje1ji96qt9eic.apps.googl
 var GOOGLE_CLIENT_SECRET = "IH3z7tFCs3PbdaTjsiU8TrPP";
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
+var Fuse = require('fuse.js');
+var paypal = require('paypal-rest-sdk');
+
 
 process.on('uncaughtException', function (err) {
     console.error(err);
@@ -174,8 +177,60 @@ app.get('/logout', function (req, res) {
     res.redirect('/');
 });
 
+app.get('/productDetails', function(req, res) {
+    GetSpecificProduct(req.query.itemid, function (err, info) {
+        GetCurrentProfileInformation(info[0].SellerId, function (err, info2) {
+            GetApprovals(info[0].SellerId, function (err, info3) {
+                delete info2[0].Gender;
+                delete info2[0].Race;
+                delete info2[0].DateOfBirth;
+                var allData = { itemData: info[0], sellerData: info2[0], approvalData:info3 };
+                res.render('buyscreen', { title: 'ShamHacks', user: req.user, data: allData });
+            });
+        });
+    });
+});
+
+app.post('/pay', function (req, res) {
+    var create_payment_json = {
+        "intent": "sale",
+        "payer": {
+            "payment_method": "paypal"
+        },
+        "redirect_urls": {
+            "return_url": "https://localhost",
+            "cancel_url": "https://localhost"
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [{
+                    "name": "item",
+                    "sku": "item",
+                    "price": "1.00",
+                    "currency": "USD",
+                    "quantity": 1
+                }]
+            },
+            "amount": {
+                "currency": "USD",
+                "total": "1.00"
+            },
+            "description": "This is the payment description."
+        }]
+    };
+
+
+    paypal.payment.create(create_payment_json, function (error, payment) {
+        if (error) {
+            throw error;
+        } else {
+            console.log("Create Payment Response");
+            console.log(payment);
+        }
+    });
+});
+
 app.get('/sell', function (req, res) {
-    req.logout();
     res.render('sellAnItem', { title: 'ShamHacks', user: req.user });
 });
 
@@ -183,9 +238,95 @@ app.get('/', function (req, res) {
     res.render('index', { title: 'ShamHacks', user: req.user });
 });
 
+app.get('/productInfo', function (req, res) {
+    res.render('productInfo', { title: 'ShamHacks', user: req.user, productId: req.productId });
+});
+
+app.get('/viewSelling', function (req, res) {
+    try {
+        GetProducts(req.user.id, function (err, items) {
+            console.log(items);
+            res.render('manageItems', { title: 'ShamHacks', user: req.user, items: items });
+        });
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+});
+
+app.post('/voteAff', ensureAuthenticated, function (req, res) {
+    SubmitVote(req.user.id, req.body.sellerid, true, function (err) {
+        res.redirect('/');
+    });
+});
+
+app.post('/voteNeg', ensureAuthenticated, function (req, res) {
+    SubmitVote(req.user.id, req.body.sellerid, false, function (err) {
+        res.redirect('/');
+    });
+});
+
+app.post('/search', function (req, res) {
+    try {
+        GetAllProducts(function (err, items) {
+            console.log(items);
+            if (items) {
+                var options = {
+                    shouldSort: true,
+                    threshold: 0.6,
+                    location: 0,
+                    distance: 100,
+                    maxPatternLength: 32,
+                    minMatchCharLength: 1,
+                    keys: [
+                        "Title", "DescriptionTags"
+                    ]
+                };
+                var fuse = new Fuse(items, options); // "list" is the item array
+                var result = fuse.search(req.body.data);
+                console.log(result);
+                res.render('results', { title: 'ShamHacks', user: req.user, items: result });
+            }
+        });
+    }
+    catch (ex) {
+
+    }
+});
+
+app.post('/updateSelling', function (req, res) {
+    try {
+        var title = req.body.itemname;
+        var cost = req.body.itemcost;
+        var quantityAvailable = req.body.itemquantity;
+        var pickUp = req.body.itempickup;
+        var mainimage = req.body.itemimage;
+        var image2 = req.body.itemimage2;
+        var image3 = req.body.itemimage3;
+        var image4 = req.body.itemimage4;
+        var image5 = req.body.itemimage5;
+        var id = req.body.itemid;
+        var tags = req.body.itemtags;
+        var deleteIt = req.body.deleteItem;
+        if (deleteIt.toLowerCase() == "yes" || deleteIt.toLowerCase() == "y") {
+            DeleteProduct(req.user.id, id, function (err) {
+                res.redirect('/viewSelling');
+            });
+        }
+        else {
+            UpdateProducts(req.user.id, title, cost, quantityAvailable, pickUp, mainimage, image2, image3, image4, image5, id, tags, function (err) {
+                res.redirect('/viewSelling');
+            });
+        }
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+});
+
 app.get('/account', ensureAuthenticated, function (req, res) {
     console.log(req.user.id);
-    GetCurrentProfileInformation(req.user, function (err, data) {
+    GetCurrentProfileInformation(req.user.id, function (err, data) {
         res.render('account', { user: req.user, data: data, message: undefined });
     });
 });
@@ -348,7 +489,7 @@ function GetCurrentProfileInformation(userId, callback) {
                 }
             }
         });
-        request.addParameter('UserId', TYPES.NChar, userId.id);
+        request.addParameter('UserId', TYPES.NChar, userId);
 
         request.on('doneInProc', function (rowCount, more, rows) {
             rows.forEach(function (columns) {
@@ -406,7 +547,7 @@ function PostNewItem(userId, title, cost, quantityAvailable, pickUp, image, call
             console.log(err1);
             callback(err1, false);
         }
-        var request = new Request("INSERT INTO Products (Title, Cost, Quantity, PickUpAvailable, ImageLink, SellerId) VALUES(@Title,@Cost,@Quantity,@PickUpAvailable,@ImageLink,@SellerId)", function (err) {
+        var request = new Request("INSERT INTO Products (Title, Cost, Quantity, PickUpAvailable, MainImageLink, SellerId) VALUES(@Title,@Cost,@Quantity,@PickUpAvailable,@ImageLink,@SellerId)", function (err) {
             if (err) {
                 console.log(err);
                 connection.release();
@@ -424,6 +565,316 @@ function PostNewItem(userId, title, cost, quantityAvailable, pickUp, image, call
         request.addParameter('Quantity', TYPES.NChar, quantityAvailable);
         request.addParameter('PickUpAvailable', TYPES.NChar, pickUp);
         request.addParameter('Title', TYPES.NChar, title);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
+
+function GetSpecificProduct(productId, callback) {
+    var jsonArray = [];
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        try {
+            var request = new Request("SELECT * FROM Products WHERE id=@id", function (err) {
+                if (err) {
+                    console.log(err);
+                    connection.release();
+                    callback(err, false);
+                }
+                else {
+                    console.log("success");
+                    err = null;
+                    connection.release();
+                    if (jsonArray.length == 0) {
+                        callback(err, null);
+                    }
+                    else {
+                        callback(err, jsonArray);
+                    }
+                }
+            });
+
+            request.addParameter('id', TYPES.NChar, productId);
+
+            request.on('doneInProc', function (rowCount, more, rows) {
+                rows.forEach(function (columns) {
+                    var rowObject = {};
+                    columns.forEach(function (column) {
+                        if (column.value != null) {
+                            rowObject[column.metadata.colName] = column.value.toString().trim();
+                        }
+                        else {
+                            rowObject[column.metadata.colName] = null;
+                        }
+                    });
+                    jsonArray.push(rowObject);
+                });
+            });
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+
+    });
+}
+
+function GetApprovals(accusedId, callback) {
+    var jsonArray = [];
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        try {
+            var request = new Request("SELECT Vote, COUNT(*) AS c FROM Approval GROUP BY Vote", function (err) {
+                if (err) {
+                    console.log(err);
+                    connection.release();
+                    callback(err, false);
+                }
+                else {
+                    console.log("success");
+                    err = null;
+                    connection.release();
+                    if (jsonArray.length == 0) {
+                        callback(err, null);
+                    }
+                    else {
+                        callback(err, jsonArray);
+                    }
+                }
+            });
+
+            request.on('doneInProc', function (rowCount, more, rows) {
+                rows.forEach(function (columns) {
+                    var rowObject = {};
+                    columns.forEach(function (column) {
+                        if (column.value != null) {
+                            rowObject[column.metadata.colName] = column.value.toString().trim();
+                        }
+                        else {
+                            rowObject[column.metadata.colName] = null;
+                        }
+                    });
+                    jsonArray.push(rowObject);
+                });
+            });
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+
+    });
+}
+
+function SubmitVote(userid, sellerid, vote, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        var request = new Request("IF NOT EXISTS (SELECT * FROM Approval WHERE Accused=@Accused AND Voting=@Voting) INSERT INTO Approval (Accused, Voting, Vote) VALUES(@Accused,@Voting,@Vote)", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('Accused', TYPES.NChar, sellerid);
+        request.addParameter('Voting', TYPES.NChar, userid);
+        request.addParameter('Vote', TYPES.Bit, vote);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
+
+function GetAllProducts(callback) {
+    var jsonArray = [];
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        try {
+            var request = new Request("SELECT * FROM Products", function (err) {
+                if (err) {
+                    console.log(err);
+                    connection.release();
+                    callback(err, false);
+                }
+                else {
+                    console.log("success");
+                    err = null;
+                    connection.release();
+                    if (jsonArray.length == 0) {
+                        callback(err, null);
+                    }
+                    else {
+                        callback(err, jsonArray);
+                    }
+                }
+            });
+
+            request.on('doneInProc', function (rowCount, more, rows) {
+                rows.forEach(function (columns) {
+                    var rowObject = {};
+                    columns.forEach(function (column) {
+                        if (column.value != null) {
+                            rowObject[column.metadata.colName] = column.value.toString().trim();
+                        }
+                        else {
+                            rowObject[column.metadata.colName] = null;
+                        }
+                    });
+                    jsonArray.push(rowObject);
+                });
+            });
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+
+    });
+}
+
+function GetProducts(userId, callback) {
+    var jsonArray = [];
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        try {
+            var request = new Request("SELECT * FROM Products WHERE SellerId=@UserId", function (err) {
+                if (err) {
+                    console.log(err);
+                    connection.release();
+                    callback(err, false);
+                }
+                else {
+                    console.log("success");
+                    err = null;
+                    connection.release();
+                    if (jsonArray.length == 0) {
+                        callback(err, null);
+                    }
+                    else {
+                        callback(err, jsonArray);
+                    }
+                }
+            });
+            request.addParameter('UserId', TYPES.NChar, userId);
+
+            request.on('doneInProc', function (rowCount, more, rows) {
+                rows.forEach(function (columns) {
+                    var rowObject = {};
+                    columns.forEach(function (column) {
+                        if (column.value != null) {
+                            rowObject[column.metadata.colName] = column.value.toString().trim();
+                        }
+                        else {
+                            rowObject[column.metadata.colName] = null;
+                        }
+                    });
+                    jsonArray.push(rowObject);
+                });
+            });
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+
+    });
+}
+
+function DeleteProduct(userId, id, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("IF EXISTS (SELECT * FROM Products WHERE id=@id AND SellerId=@UserId) DELETE FROM Products WHERE id=@id AND SellerId=@UserId", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('id', TYPES.NChar, id);
+        request.addParameter('UserId', TYPES.NChar, userId);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
+
+function UpdateProducts(userId, title, cost, quantityAvailable, pickUp, mainimage, image2, image3, image4, image5, id, tags, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("IF EXISTS (SELECT * FROM Products WHERE id=@id AND SellerId=@UserId) UPDATE Products SET Title=@Title, Cost=@Cost, Quantity=@Quantity, PickUpAvailable=@PickUpAvailable, MainImageLink=@MainImageLink, ImageLink2=@ImageLink2, ImageLink3=@ImageLink3, ImageLink4=@ImageLink4, ImageLink5=@ImageLink5, DescriptionTags=@DescriptionTags WHERE id=@id AND SellerId=@UserId", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('UserId', TYPES.NChar, userId);
+        request.addParameter('Title', TYPES.NChar, title);
+        request.addParameter('Cost', TYPES.Float, cost);
+        request.addParameter('Quantity', TYPES.NChar, quantityAvailable);
+        request.addParameter('PickUpAvailable', TYPES.NChar, pickUp);
+        request.addParameter('MainImageLink', TYPES.NChar, mainimage);
+        request.addParameter('ImageLink2', TYPES.NChar, image2);
+        request.addParameter('ImageLink3', TYPES.NChar, image3);
+        request.addParameter('ImageLink4', TYPES.NChar, image4);
+        request.addParameter('ImageLink5', TYPES.NChar, image5);
+        request.addParameter('DescriptionTags', TYPES.NChar, tags);
+        request.addParameter('id', TYPES.NChar, id);
         try {
             connection.execSql(request);
         }
@@ -478,6 +929,12 @@ function UpdateProfile(userId, dob, addr, city, state, zip, company, phoneNumber
         }
     });
 }
+
+paypal.configure({
+    'mode': 'sandbox', //sandbox or live
+    'client_id': 'AaapI2lWuOgGlJ3_4IRP_5gNN_YH2-PcCQy5hZ0NRzf1rEQ2Vf1tgzMlEovG1udwo_Fb-qKEwLIn8d_c',
+    'client_secret': 'EEG_VkgNToQRd3IwnxuwbdYim9PBCxu-xCV3Uq6VCSWDemgyEjMUmstvcbFO6K2qiFpp6reaBkZNnAD4'
+});
 
 module.exports = app;
 https.createServer(options, app).listen(443);
