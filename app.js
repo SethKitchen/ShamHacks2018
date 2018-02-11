@@ -89,7 +89,7 @@ passport.use(new GoogleStrategy({
     //then edit your /etc/hosts local file to point on your private IP. 
     //Also both sign-in button + callbackURL has to be share the same url, otherwise two cookies will be created and lead to lost your session
     //if you use it.
-    callbackURL: "https://localhost/signin-google",
+    callbackURL: "https://wildblueyonder.herokuapp.com/signin-google",
     passReqToCallback: true
 },
     function (request, accessToken, refreshToken, profile, done) {
@@ -190,44 +190,6 @@ app.get('/productDetails', function(req, res) {
     });
 });
 
-app.post('/pay', function (req, res) {
-    var create_payment_json = {
-        "intent": "sale",
-        "payer": {
-            "payment_method": "paypal"
-        },
-        "redirect_urls": {
-            "return_url": "https://localhost",
-            "cancel_url": "https://localhost"
-        },
-        "transactions": [{
-            "item_list": {
-                "items": [{
-                    "name": "item",
-                    "sku": "item",
-                    "price": "1.00",
-                    "currency": "USD",
-                    "quantity": 1
-                }]
-            },
-            "amount": {
-                "currency": "USD",
-                "total": "1.00"
-            },
-            "description": "This is the payment description."
-        }]
-    };
-
-
-    paypal.payment.create(create_payment_json, function (error, payment) {
-        if (error) {
-            throw error;
-        } else {
-            console.log("Create Payment Response");
-            console.log(payment);
-        }
-    });
-});
 
 app.get('/sell', function (req, res) {
     res.render('sellAnItem', { title: 'ShamHacks', user: req.user });
