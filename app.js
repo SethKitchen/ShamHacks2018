@@ -175,12 +175,53 @@ app.get('/logout', function (req, res) {
 });
 
 app.get('/sell', function (req, res) {
-    req.logout();
     res.render('sellAnItem', { title: 'ShamHacks', user: req.user });
 });
 
 app.get('/', function (req, res) {
     res.render('index', { title: 'ShamHacks', user: req.user });
+});
+
+app.get('/viewSelling', function (req, res) {
+    try {
+        GetProducts(req.user.id, function (err, items) {
+            console.log(items);
+            res.render('manageItems', { title: 'ShamHacks', user: req.user, items: items });
+        });
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+});
+
+app.post('/updateSelling', function (req, res) {
+    try {
+        var title = req.body.itemname;
+        var cost = req.body.itemcost;
+        var quantityAvailable = req.body.itemquantity;
+        var pickUp = req.body.itempickup;
+        var mainimage = req.body.itemimage;
+        var image2 = req.body.itemimage2;
+        var image3 = req.body.itemimage3;
+        var image4 = req.body.itemimage4;
+        var image5 = req.body.itemimage5;
+        var id = req.body.itemid;
+        var tags = req.body.itemtags;
+        var deleteIt = req.body.deleteItem;
+        if (deleteIt.toLowerCase() == "yes" || deleteIt.toLowerCase() == "y") {
+            DeleteProduct(req.user.id, id, function (err) {
+                res.redirect('/viewSelling');
+            });
+        }
+        else {
+            UpdateProducts(req.user.id, title, cost, quantityAvailable, pickUp, mainimage, image2, image3, image4, image5, id, tags, function (err) {
+                res.redirect('/viewSelling');
+            });
+        }
+    }
+    catch (ex) {
+        console.log(ex);
+    }
 });
 
 app.get('/account', ensureAuthenticated, function (req, res) {
@@ -406,7 +447,7 @@ function PostNewItem(userId, title, cost, quantityAvailable, pickUp, image, call
             console.log(err1);
             callback(err1, false);
         }
-        var request = new Request("INSERT INTO Products (Title, Cost, Quantity, PickUpAvailable, ImageLink, SellerId) VALUES(@Title,@Cost,@Quantity,@PickUpAvailable,@ImageLink,@SellerId)", function (err) {
+        var request = new Request("INSERT INTO Products (Title, Cost, Quantity, PickUpAvailable, MainImageLink, SellerId) VALUES(@Title,@Cost,@Quantity,@PickUpAvailable,@ImageLink,@SellerId)", function (err) {
             if (err) {
                 console.log(err);
                 connection.release();
@@ -424,6 +465,130 @@ function PostNewItem(userId, title, cost, quantityAvailable, pickUp, image, call
         request.addParameter('Quantity', TYPES.NChar, quantityAvailable);
         request.addParameter('PickUpAvailable', TYPES.NChar, pickUp);
         request.addParameter('Title', TYPES.NChar, title);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
+
+function GetProducts(userId, callback) {
+    var jsonArray = [];
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+        try {
+            var request = new Request("SELECT * FROM Products WHERE SellerId=@UserId", function (err) {
+                if (err) {
+                    console.log(err);
+                    connection.release();
+                    callback(err, false);
+                }
+                else {
+                    console.log("success");
+                    err = null;
+                    connection.release();
+                    if (jsonArray.length == 0) {
+                        callback(err, null);
+                    }
+                    else {
+                        callback(err, jsonArray);
+                    }
+                }
+            });
+            request.addParameter('UserId', TYPES.NChar, userId);
+
+            request.on('doneInProc', function (rowCount, more, rows) {
+                rows.forEach(function (columns) {
+                    var rowObject = {};
+                    columns.forEach(function (column) {
+                        if (column.value != null) {
+                            rowObject[column.metadata.colName] = column.value.toString().trim();
+                        }
+                        else {
+                            rowObject[column.metadata.colName] = null;
+                        }
+                    });
+                    jsonArray.push(rowObject);
+                });
+            });
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+
+    });
+}
+
+function DeleteProduct(userId, id, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("IF EXISTS (SELECT * FROM Products WHERE id=@id AND SellerId=@UserId) DELETE FROM Products WHERE id=@id AND SellerId=@UserId", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('id', TYPES.NChar, id);
+        request.addParameter('UserId', TYPES.NChar, userId);
+        try {
+            connection.execSql(request);
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+    });
+}
+
+function UpdateProducts(userId, title, cost, quantityAvailable, pickUp, mainimage, image2, image3, image4, image5, id, tags, callback) {
+    //acquire a connection
+    pool.acquire(function (err1, connection) {
+        if (err1) {
+            console.log(err1);
+            callback(err1, false);
+        }
+
+        var request = new Request("IF EXISTS (SELECT * FROM Products WHERE id=@id AND SellerId=@UserId) UPDATE Products SET Title=@Title, Cost=@Cost, Quantity=@Quantity, PickUpAvailable=@PickUpAvailable, MainImageLink=@MainImageLink, ImageLink2=@ImageLink2, ImageLink3=@ImageLink3, ImageLink4=@ImageLink4, ImageLink5=@ImageLink5, DescriptionTags=@DescriptionTags WHERE id=@id AND SellerId=@UserId", function (err) {
+            if (err) {
+                console.log(err);
+                connection.release();
+                callback(err, false);
+            }
+            else {
+                console.log("success");
+                connection.release();
+                callback(err, true);
+            }
+        });
+        request.addParameter('UserId', TYPES.NChar, userId);
+        request.addParameter('Title', TYPES.NChar, title);
+        request.addParameter('Cost', TYPES.Float, cost);
+        request.addParameter('Quantity', TYPES.NChar, quantityAvailable);
+        request.addParameter('PickUpAvailable', TYPES.NChar, pickUp);
+        request.addParameter('MainImageLink', TYPES.NChar, mainimage);
+        request.addParameter('ImageLink2', TYPES.NChar, image2);
+        request.addParameter('ImageLink3', TYPES.NChar, image3);
+        request.addParameter('ImageLink4', TYPES.NChar, image4);
+        request.addParameter('ImageLink5', TYPES.NChar, image5);
+        request.addParameter('DescriptionTags', TYPES.NChar, tags);
+        request.addParameter('id', TYPES.NChar, id);
         try {
             connection.execSql(request);
         }
